@@ -14,6 +14,7 @@ int keepRunning = 1;
 struct can_queue can_read_queue;
 
 extern sem_t semaphore, mutex;
+int queue_len;
 
 int * can_interceptor_thread(int s)
 {
@@ -53,6 +54,8 @@ int * can_interceptor_thread(int s)
 
 	struct message_node msg_node_key;
 	struct message_node *result_node;
+	
+	queue_len = 0;
 
 	while(keepRunning){
 		FD_ZERO(&rdfs);
@@ -96,32 +99,33 @@ int * can_interceptor_thread(int s)
 				result_node = get_message(msg_tree, &msg_node_key, sizeof(struct message_node));
 				if(result_node != NULL)
 				{
-					// This probably isn't necessarily now.
-					//result_node->data = frame;
-
+					result_node->data = frame;
 					// Add message node pointer to queue that allows another thread to find it quickly to translate.
 					// QUEUE CODE HERE...
-					struct can_message *msg = malloc(sizeof(struct can_message));
+					//struct can_message *msg = malloc(sizeof(struct can_message));
 					//msg->frame = &frame;
-					msg->frame = malloc(sizeof(struct canfd_frame));
-					memcpy(msg->frame, &frame, sizeof(frame));
-					msg->next = NULL;
-					msg->can_signals = result_node->list;
+					//msg->frame = malloc(sizeof(struct canfd_frame));
+					//memcpy(msg->frame, &frame, sizeof(frame));
+					//msg->next = NULL;
+					//msg->can_signals = result_node->list;
 					sem_wait(&mutex);
 					if(can_read_queue.head == NULL)
 					{
-						can_read_queue.head = msg;
-						can_read_queue.tail = msg;
+						can_read_queue.head = result_node;
+						can_read_queue.tail = result_node;
+						result_node->is_queued = 1;
 					}
-					else
+					else if(result_node->is_queued == 0)
 					{
-						can_read_queue.tail->next = msg;
+						can_read_queue.tail->next = result_node;
 						can_read_queue.tail = can_read_queue.tail->next;
 						if(can_read_queue.tail == NULL)
 						{
 							printf("Tail is null\n");
 						}
+						result_node->is_queued = 1;
 					}
+
 					sem_post(&mutex);
 					sem_post(&semaphore);
 				}

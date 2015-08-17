@@ -29,7 +29,7 @@ char mysql_statement[2000], query[200];
 
 void * translate_thread()
 {
-	struct can_message * can_message_to_translate;
+	struct message_node * can_message_to_translate;
 	struct signal_structure * signal;
 	uint8_t frameLength;
 	uint64_t bitmask = 0;

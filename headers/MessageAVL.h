@@ -13,8 +13,7 @@ struct message_node {
     char name[50];
     struct my_list *list;
     struct canfd_frame data;
-    int log_mode;
-    int count;
+    int is_queued;
 };
 
 int data_cmp_msg(void *a, void *b);

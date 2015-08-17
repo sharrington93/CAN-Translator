@@ -36,8 +36,8 @@ struct my_list
 
 struct can_queue
 {
-	struct can_message * head;
-	struct can_message * tail;
+	struct message_node * head;
+	struct message_node * tail;
 };
 
 
